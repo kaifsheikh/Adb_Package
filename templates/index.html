@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Force Stop Apps</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ADB Force Stop Apps</h1>
+        <button id="stopBtn">Stop All Apps</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.getElementById("stopBtn").addEventListener("click", async () => {
+            document.getElementById("status").innerHTML = "Stopping apps...";
+            const response = await fetch("/force_stop", { method: "POST" });
+            const data = await response.json();
+            document.getElementById("status").innerHTML = data.status.join("<br>");
+        });
+    </script>
+</body>
+</html>
