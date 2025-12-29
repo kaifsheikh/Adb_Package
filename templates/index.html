@@ -2,23 +2,232 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Force Stop Apps</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADB Controller - Wireless Device Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static' , filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>ADB Force Stop Apps</h1>
-        <button id="stopBtn">Stop All Apps</button>
-        <div id="status"></div>
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h1>ADB Controller</h1>
+            </div>
+            <p class="subtitle">Wireless Android Device Management Tool</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span id="devices-count" class="stat-value">0</span>
+                    <span class="stat-label">Devices</span>
+                </div>
+                <div class="stat-item">
+                    <span id="apps-count" class="stat-value">0</span>
+                    <span class="stat-label">Apps Loaded</span>
+                </div>
+                <div class="stat-item">
+                    <span id="selected-count" class="stat-value">0</span>
+                    <span class="stat-label">Selected</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="device-section">
+                    <div class="section-title">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Device Selection</span>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="scan()">
+                        <i class="fas fa-search"></i> Scan Devices
+                    </button>
+                    
+                    <select id="device">
+                        <option value="" disabled selected>No devices found</option>
+                    </select>
+                    
+                    <div class="device-info">
+                        <div class="section-title">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Device Info</span>
+                        </div>
+                        <div id="device-details" style="color: var(--text-secondary); font-size: 0.9rem; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            Select a device to view details
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="device-section">
+                    <div class="section-title">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Quick Actions</span>
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="loadApps()">
+                        <i class="fas fa-download"></i> Load Apps
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="selectAllApps()">
+                        <i class="fas fa-check-square"></i> Select All
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="deselectAllApps()">
+                        <i class="fas fa-square"></i> Deselect All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="force">
+                        <i class="fas fa-stop-circle"></i> Force Stop
+                    </button>
+                    <button class="tab-btn" data-tab="clear">
+                        <i class="fas fa-eraser"></i> Clear Data
+                    </button>
+                    <button class="tab-btn" data-tab="launch">
+                        <i class="fas fa-play-circle"></i> Launch App
+                    </button>
+                    <button class="tab-btn" data-tab="uninstall">
+                        <i class="fas fa-trash-alt"></i> Uninstall
+                    </button>
+                    <button class="tab-btn" data-tab="battery">
+                        <i class="fas fa-battery-full"></i> Battery
+                    </button>
+                </div>
+
+                <!-- Force Stop Tab -->
+                <div class="tab-content active" id="force-tab">
+                    <div class="tab-header">
+                        <h3>Force Stop Applications</h3>
+                        <div class="search-box">
+                            <input type="text" id="forceSearch" placeholder="Search apps...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <select id="forceApps" multiple class="apps-list"></select>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-force" onclick="forceStop(false)">
+                            <i class="fas fa-stop-circle"></i> Stop Selected Apps
+                        </button>
+                        <button class="action-btn btn-force" onclick="forceStop(true)">
+                            <i class="fas fa-ban"></i> Stop ALL Apps
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clear Data Tab -->
+                <div class="tab-content" id="clear-tab">
+                    <div class="tab-header">
+                        <h3>Clear Application Data</h3>
+                        <div class="search-box">
+                            <input type="text" id="clearSearch" placeholder="Search apps...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <select id="clearApps" multiple class="apps-list"></select>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-clear" onclick="clearApps(false)">
+                            <i class="fas fa-eraser"></i> Clear Selected Data
+                        </button>
+                        <button class="action-btn btn-clear" onclick="clearApps(true)">
+                            <i class="fas fa-bomb"></i> Clear ALL Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Launch App Tab -->
+                <div class="tab-content" id="launch-tab">
+                    <div class="tab-header">
+                        <h3>Launch Application</h3>
+                        <div class="search-box">
+                            <input type="text" id="launchSearch" placeholder="Search apps...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <select id="launchApps" class="apps-list"></select>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-launch" onclick="launchApp()">
+                            <i class="fas fa-play"></i> Launch Selected App
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Uninstall Tab -->
+                <div class="tab-content" id="uninstall-tab">
+                    <div class="tab-header">
+                        <h3>Uninstall Applications</h3>
+                        <div class="search-box">
+                            <input type="text" id="uninstallSearch" placeholder="Search apps...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <select id="uninstallApps" multiple class="apps-list"></select>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-uninstall" onclick="uninstall()">
+                            <i class="fas fa-trash"></i> Uninstall Selected Apps
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Battery Tab -->
+                <div class="tab-content" id="battery-tab">
+                    <div class="tab-header">
+                        <h3>Battery Information</h3>
+                    </div>
+                    
+                    <p>Get detailed battery status for the selected device.</p>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn btn-launch" onclick="battery()">
+                            <i class="fas fa-battery-full"></i> Check Battery Status
+                        </button>
+                    </div>
+                    
+                    <div class="battery-output" id="batteryOut">
+                        Battery information will appear here...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <div class="status-header">
+                <h3><i class="fas fa-terminal"></i> Status Log</h3>
+                <button class="btn btn-secondary" onclick="clearStatus()" style="width: auto; padding: 10px 20px;">
+                    <i class="fas fa-trash-alt"></i> Clear Log
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing request...</p>
+            </div>
+            
+            <div id="status">Ready to scan devices. Click "Scan Devices" to begin.</div>
+        </div>
+
+        <footer>
+            <p>ADB Controller &copy; 2023 | Wireless Android Device Management</p>
+            <p>Ensure USB Debugging is enabled on your Android devices</p>
+        </footer>
     </div>
 
-    <script>
-        document.getElementById("stopBtn").addEventListener("click", async () => {
-            document.getElementById("status").innerHTML = "Stopping apps...";
-            const response = await fetch("/force_stop", { method: "POST" });
-            const data = await response.json();
-            document.getElementById("status").innerHTML = data.status.join("<br>");
-        });
-    </script>
+    <script src="{{ url_for('static' , filename='script.js') }}"></script>
 </body>
 </html>
