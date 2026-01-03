@@ -3,7 +3,7 @@ import subprocess, json
 
 app = Flask(__name__)
 
-ADB_PATH = r"C:\Users\KAIF\Desktop\ADB\platform-tools-latest-windows\platform-tools\adb.exe"
+ADB_PATH = r"C:\Users\Kaif\Desktop\Adb_Package\platform-tools-latest-windows\platform-tools\adb.exe"
 DEVICES_FILE = "devices.json"
 
 # ------------- HELPERS -------------
